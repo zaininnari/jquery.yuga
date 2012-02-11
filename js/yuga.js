@@ -24,14 +24,8 @@
 (function($) {
 
   $(function() {
-    $.yuga.selflink();
-    $.yuga.rollover();
     $.yuga.externalLink();
-    $.yuga.thickbox();
     $.yuga.scroll();
-    $.yuga.tab();
-    $.yuga.stripe();
-    $.yuga.css3class();
   });
 
   // ---------------------------------------------------------------------
@@ -70,81 +64,6 @@
         });
       }
     },
-    // 現在のページと親ディレクトリへのリンク
-    selflink: function(options) {
-      var c = $.extend({
-                selfLinkAreaSelector: 'body',
-                selfLinkClass: 'current',
-                parentsLinkClass: 'parentsLink',
-                postfix: '_cr',
-                changeImgSelf: true,
-                changeImgParents: true
-      }, options);
-      $(c.selfLinkAreaSelector + ((c.selfLinkAreaSelector) ? ' ' : '') + 'a[href]').each(function() {
-        var href = new $.yuga.Uri(this.getAttribute('href'));
-        var setImgFlg = false;
-        if ((href.absolutePath == location.href) && !href.fragment) {
-          // 同じ文書にリンク
-          $(this).addClass(c.selfLinkClass);
-          setImgFlg = c.changeImgSelf;
-        } else if (0 <= location.href.search(href.absolutePath)) {
-          // 親ディレクトリリンク
-          $(this).addClass(c.parentsLinkClass);
-          setImgFlg = c.changeImgParents;
-        }
-        if (setImgFlg) {
-          // img要素が含まれていたら現在用画像（_cr）に設定
-          $(this).find('img').each(function() {
-            this.originalSrc = $(this).prop('src');
-            this.currentSrc = this.originalSrc.replace(new RegExp('(' + c.postfix + ')?(\.gif|\.jpg|\.png)$'), c.postfix + '$2');
-            $(this).prop('src', this.currentSrc);
-          });
-        }
-      });
-    },
-    // ロールオーバー
-    rollover: function(options) {
-      var c = $.extend({
-                hoverSelector: '.btn, .allbtn img',
-                groupSelector: '.btngroup',
-                postfix: '_on'
-      }, options);
-      // ロールオーバーするノードの初期化
-      var rolloverImgs = $(c.hoverSelector).filter(isNotCurrent);
-      rolloverImgs.each(function() {
-        this.originalSrc = $(this).prop('src');
-        this.rolloverSrc = this.originalSrc.replace(new RegExp('(' + c.postfix + ')?(\.gif|\.jpg|\.png)$'), c.postfix + '$2');
-        this.rolloverImg = new Image;
-        this.rolloverImg.src = this.rolloverSrc;
-      });
-      // グループ内のimg要素を指定するセレクタ生成
-      var groupingImgs = $(c.groupSelector).find('img').filter(isRolloverImg);
-
-      // 通常ロールオーバー
-      rolloverImgs.not(groupingImgs).hover(function() {
-        $(this).prop('src', this.rolloverSrc);
-      }, function() {
-        $(this).prop('src', this.originalSrc);
-      });
-      // グループ化されたロールオーバー
-      $(c.groupSelector).hover(function() {
-        $(this).find('img').filter(isRolloverImg).each(function() {
-          $(this).prop('src', this.rolloverSrc);
-        });
-      }, function() {
-        $(this).find('img').filter(isRolloverImg).each(function() {
-          $(this).prop('src', this.originalSrc);
-        });
-      });
-      // フィルタ用function
-      function isNotCurrent(i) {
-        return Boolean(!this.currentSrc);
-      }
-      function isRolloverImg(i) {
-        return Boolean(this.rolloverSrc);
-      }
-
-    },
     // 外部リンクは別ウインドウを設定
     externalLink: function(options) {
       var c = $.extend({
@@ -163,13 +82,6 @@
       if (c.addIconSrc)
         e.not(':has(img)').after($('<img src="' + c.addIconSrc + '" class="externalIcon" />'));
       e.addClass(c.externalClass);
-    },
-    // 画像へ直リンクするとthickboxで表示(thickbox.js利用)
-    thickbox: function() {
-      try {
-        tb_init('a[href$=".jpg"]:not(.thickbox, a[href*="?"]), a[href$=".gif"][href!="?"]:not(.thickbox, a[href*="?"]), a[href$=".png"][href!="?"]:not(.thickbox, a[href*="?"])');
-      } catch (e) {
-      }
     },
     // ページ内リンクはするするスクロール
     scroll: function(options) {
@@ -260,60 +172,6 @@
           return false;
         }
       });
-    },
-    // タブ機能
-    tab: function(options) {
-      var c = $.extend({
-                tabNavSelector: '.tabNav',
-                activeTabClass: 'active'
-      }, options);
-      $(c.tabNavSelector).each(function() {
-        var tabNavList = $(this).find('a[href^=#], area[href^=#]');
-        var tabBodyList;
-        tabNavList.each(function() {
-          this.hrefdata = new $.yuga.Uri(this.getAttribute('href'));
-          var selecter = '#' + this.hrefdata.fragment;
-          if (tabBodyList) {
-            tabBodyList = tabBodyList.add(selecter);
-          } else {
-            tabBodyList = $(selecter);
-          }
-          $(this).unbind('click');
-          $(this).click(function() {
-            tabNavList.removeClass(c.activeTabClass);
-            $(this).addClass(c.activeTabClass);
-            tabBodyList.hide();
-            $(selecter).show();
-            return false;
-          });
-        });
-        tabBodyList.hide();
-        tabNavList.filter(':first').trigger('click');
-      });
-    },
-    // 奇数、偶数を自動追加
-    stripe: function(options) {
-      var c = $.extend({
-                oddClass: 'odd',
-                evenClass: 'even'
-      }, options);
-      $('ul, ol').each(function() {
-        // JSでは0から数えるのでevenとaddを逆に指定
-        $(this).children('li:odd').addClass(c.evenClass);
-        $(this).children('li:even').addClass(c.oddClass);
-      });
-      $('table, tbody').each(function() {
-        $(this).children('tr:odd').addClass(c.evenClass);
-        $(this).children('tr:even').addClass(c.oddClass);
-      });
-    },
-    // css3のクラスを追加
-    css3class: function() {
-      // :first-child, :last-childをクラスとして追加
-      $('body :first-child').addClass('firstChild');
-      $('body :last-child').addClass('lastChild');
-      // css3の:emptyをクラスとして追加
-      $('body :empty').addClass('empty');
     }
   };
 })(jQuery);
