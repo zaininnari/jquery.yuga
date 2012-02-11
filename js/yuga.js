@@ -69,10 +69,11 @@
       var c = $.extend({
                 windowOpen: true,
                 externalClass: 'externalLink',
-                addIconSrc: ''
+                addIconSrc: '',
+                noexternalLink: 'js_yuga_externalLink'
       }, options);
       var uri = new $.yuga.Uri(location.href);
-      var e = $('a[href^="http://"]').not('a[href^="' + uri.schema + '://' + uri.host + '/' + '"]');
+      var e = $('a[href^="http://"]').not('a[href^="' + uri.schema + '://' + uri.host + '/' + '"]').not('a.' + c.noexternalLink);
       if (c.windowOpen) {
         e.click(function() {
           window.open(this.href, '_blank');
@@ -86,6 +87,9 @@
     // ページ内リンクはするするスクロール
     scroll: function(options) {
       // ドキュメントのスクロールを制御するオブジェクト
+      options = $.extend({
+        noscrollClass: 'js_yuga_noscroll'
+      }, options);
       var scroller = (function() {
         var c = $.extend({
           easing: 100,
@@ -158,7 +162,7 @@
           }
         };
       })();
-      $('a[href^=#], area[href^=#]').not('a[href=#], area[href=#]').each(function() {
+      $('a[href^=#], area[href^=#]').not('a[href=#], area[href=#], a.' + options.noscrollClass + ', area.' + options.noscrollClass).each(function() {
         this.hrefdata = new $.yuga.Uri(this.getAttribute('href'));
       }).click(function() {
         var target = $('#' + this.hrefdata.fragment);
